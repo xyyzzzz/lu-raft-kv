@@ -1,10 +1,10 @@
-package cn.think.in.java;
+package cn.think.in.java.core;
 
 import cn.think.in.java.common.NodeConfig;
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.AentryResult;
-import cn.think.in.java.entity.RvoteParam;
-import cn.think.in.java.entity.RvoteResult;
+import cn.think.in.java.entity.AppendEntryParam;
+import cn.think.in.java.entity.AppendEntryResult;
+import cn.think.in.java.entity.RequestVoteParam;
+import cn.think.in.java.entity.RequestVoteResult;
 import raft.client.ClientKVAck;
 import raft.client.ClientKVReq;
 
@@ -27,7 +27,7 @@ public interface Node<T> extends LifeCycle{
      * @param param
      * @return
      */
-    RvoteResult handlerRequestVote(RvoteParam param);
+    RequestVoteResult handlerRequestVote(RequestVoteParam param);
 
     /**
      * 处理附加日志请求.
@@ -35,7 +35,7 @@ public interface Node<T> extends LifeCycle{
      * @param param
      * @return
      */
-    AentryResult handlerAppendEntries(AentryParam param);
+    AppendEntryResult handlerAppendEntries(AppendEntryParam param);
 
     /**
      * 处理客户端请求.

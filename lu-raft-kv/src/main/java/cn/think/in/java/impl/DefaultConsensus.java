@@ -5,14 +5,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.think.in.java.Consensus;
-import cn.think.in.java.common.NodeStatus;
+import cn.think.in.java.core.Consensus;
+import cn.think.in.java.common.NodeRole;
 import cn.think.in.java.common.Peer;
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.AentryResult;
+import cn.think.in.java.entity.AppendEntryParam;
+import cn.think.in.java.entity.AppendEntryResult;
 import cn.think.in.java.entity.LogEntry;
-import cn.think.in.java.entity.RvoteParam;
-import cn.think.in.java.entity.RvoteResult;
+import cn.think.in.java.entity.RequestVoteParam;
+import cn.think.in.java.entity.RequestVoteResult;
 import io.netty.util.internal.StringUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,9 +48,9 @@ public class DefaultConsensus implements Consensus {
      *      如果 votedFor 为空或者就是 candidateId，并且候选人的日志至少和自己一样新，那么就投票给他（5.2 节，5.4 节）
      */
     @Override
-    public RvoteResult requestVote(RvoteParam param) {
+    public RequestVoteResult requestVote(RequestVoteParam param) {
         try {
-            RvoteResult.Builder builder = RvoteResult.newBuilder();
+            RequestVoteResult.Builder builder = RequestVoteResult.newBuilder();
             if (!voteLock.tryLock()) {
                 return builder.term(node.getCurrentTerm()).voteGranted(false).build();
             }
@@ -69,16 +69,16 @@ public class DefaultConsensus implements Consensus {
                 if (node.getLogModule().getLast() != null) {
                     // 对方没有自己新
                     if (node.getLogModule().getLast().getTerm() > param.getLastLogTerm()) {
-                        return RvoteResult.fail();
+                        return RequestVoteResult.fail();
                     }
                     // 对方没有自己新
                     if (node.getLogModule().getLastIndex() > param.getLastLogIndex()) {
-                        return RvoteResult.fail();
+                        return RequestVoteResult.fail();
                     }
                 }
 
                 // 切换状态
-                node.status = NodeStatus.FOLLOWER;
+                node.status = NodeRole.FOLLOWER;
                 // 更新
                 node.peerSet.setLeader(new Peer(param.getCandidateId()));
                 node.setCurrentTerm(param.getTerm());
@@ -106,8 +106,8 @@ public class DefaultConsensus implements Consensus {
      *    如果 leaderCommit > commitIndex，令 commitIndex 等于 leaderCommit 和 新日志条目索引值中较小的一个
      */
     @Override
-    public AentryResult appendEntries(AentryParam param) {
-        AentryResult result = AentryResult.fail();
+    public AppendEntryResult appendEntries(AppendEntryParam param) {
+        AppendEntryResult result = AppendEntryResult.fail();
         try {
             if (!appendLock.tryLock()) {
                 return result;
@@ -128,7 +128,7 @@ public class DefaultConsensus implements Consensus {
                 LOGGER.debug("node {} become FOLLOWER, currentTerm : {}, param Term : {}, param serverId",
                     node.peerSet.getSelf(), node.currentTerm, param.getTerm(), param.getServerId());
                 // 认怂
-                node.status = NodeStatus.FOLLOWER;
+                node.status = NodeRole.FOLLOWER;
             }
             // 使用对方的 term.
             node.setCurrentTerm(param.getTerm());
@@ -137,7 +137,7 @@ public class DefaultConsensus implements Consensus {
             if (param.getEntries() == null || param.getEntries().length == 0) {
                 LOGGER.info("node {} append heartbeat success , he's term : {}, my term : {}",
                     param.getLeaderId(), param.getTerm(), node.getCurrentTerm());
-                return AentryResult.newBuilder().term(node.getCurrentTerm()).success(true).build();
+                return AppendEntryResult.newBuilder().term(node.getCurrentTerm()).success(true).build();
             }
 
             // 真实日志
@@ -184,7 +184,7 @@ public class DefaultConsensus implements Consensus {
 
             result.setTerm(node.getCurrentTerm());
 
-            node.status = NodeStatus.FOLLOWER;
+            node.status = NodeRole.FOLLOWER;
             // TODO, 是否应当在成功回复之后, 才正式提交? 防止 leader "等待回复"过程中 挂掉.
             return result;
         } finally {

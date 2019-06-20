@@ -1,58 +1,29 @@
 package cn.think.in.java.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import cn.think.in.java.Consensus;
-import cn.think.in.java.LifeCycle;
-import cn.think.in.java.LogModule;
-import cn.think.in.java.Node;
-import cn.think.in.java.StateMachine;
 import cn.think.in.java.common.NodeConfig;
-import cn.think.in.java.common.NodeStatus;
+import cn.think.in.java.common.NodeRole;
 import cn.think.in.java.common.Peer;
 import cn.think.in.java.common.PeerSet;
+import cn.think.in.java.core.*;
 import cn.think.in.java.current.RaftThreadPool;
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.AentryResult;
-import cn.think.in.java.entity.Command;
-import cn.think.in.java.entity.LogEntry;
-import cn.think.in.java.entity.ReplicationFailModel;
-import cn.think.in.java.entity.RvoteParam;
-import cn.think.in.java.entity.RvoteResult;
+import cn.think.in.java.entity.*;
 import cn.think.in.java.exception.RaftRemotingException;
 import cn.think.in.java.membership.changes.ClusterMembershipChanges;
 import cn.think.in.java.membership.changes.Result;
-import cn.think.in.java.rpc.DefaultRpcClient;
-import cn.think.in.java.rpc.DefaultRpcServer;
-import cn.think.in.java.rpc.Request;
-import cn.think.in.java.rpc.Response;
-import cn.think.in.java.rpc.RpcClient;
-import cn.think.in.java.rpc.RpcServer;
+import cn.think.in.java.rpc.*;
 import cn.think.in.java.util.LongConvert;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raft.client.ClientKVAck;
 import raft.client.ClientKVReq;
 
-import static cn.think.in.java.common.NodeStatus.LEADER;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static cn.think.in.java.common.NodeRole.LEADER;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
@@ -85,9 +56,9 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
 
     /**
      * 节点当前状态
-     * @see NodeStatus
+     * @see NodeRole
      */
-    public volatile int status = NodeStatus.FOLLOWER;
+    public volatile int status = NodeRole.FOLLOWER;
 
     public PeerSet peerSet;
 
@@ -193,7 +164,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
         logModule = DefaultLogModule.getInstance();
 
         peerSet = PeerSet.getInstance();
-        for (String s : config.getPeerAddrs()) {
+        for (String s : config.getPeerAddressList()) {
             Peer peer = new Peer(s);
             peerSet.addPeer(peer);
             if (s.equals("localhost:" + config.getSelfPort())) {
@@ -206,13 +177,13 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
 
 
     @Override
-    public RvoteResult handlerRequestVote(RvoteParam param) {
+    public RequestVoteResult handlerRequestVote(RequestVoteParam param) {
         LOGGER.warn("handlerRequestVote will be invoke, param info : {}", param);
         return consensus.requestVote(param);
     }
 
     @Override
-    public AentryResult handlerAppendEntries(AentryParam param) {
+    public AppendEntryResult handlerAppendEntries(AppendEntryParam param) {
         if (param.getEntries() != null) {
             LOGGER.warn("node receive node {} append entry, entry content = {}", param.getLeaderId(), param.getEntries());
         }
@@ -226,7 +197,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
     @Override
     public ClientKVAck redirect(ClientKVReq request) {
         Request<ClientKVReq> r = Request.newBuilder().
-            obj(request).url(peerSet.getLeader().getAddr()).cmd(Request.CLIENT_REQ).build();
+            obj(request).url(peerSet.getLeader().getAddress()).cmd(Request.CLIENT_REQ).build();
         Response response = rpcClient.send(r);
         return (ClientKVAck) response.getResult();
     }
@@ -248,7 +219,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
 
         if (status != LEADER) {
             LOGGER.warn("I not am leader , only invoke redirect method, leader addr : {}, my addr : {}",
-                peerSet.getLeader(), peerSet.getSelf().getAddr());
+                peerSet.getLeader(), peerSet.getSelf().getAddress());
             return redirect(request);
         }
 
@@ -371,10 +342,10 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                 // 20 秒重试时间
                 while (end - start < 20 * 1000L) {
 
-                    AentryParam aentryParam = new AentryParam();
+                    AppendEntryParam aentryParam = new AppendEntryParam();
                     aentryParam.setTerm(currentTerm);
-                    aentryParam.setServerId(peer.getAddr());
-                    aentryParam.setLeaderId(peerSet.getSelf().getAddr());
+                    aentryParam.setServerId(peer.getAddress());
+                    aentryParam.setLeaderId(peerSet.getSelf().getAddress());
 
                     aentryParam.setLeaderCommit(commitIndex);
 
@@ -401,7 +372,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                     Request request = Request.newBuilder()
                         .cmd(Request.A_ENTRIES)
                         .obj(aentryParam)
-                        .url(peer.getAddr())
+                        .url(peer.getAddress())
                         .build();
 
                     try {
@@ -409,7 +380,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                         if (response == null) {
                             return false;
                         }
-                        AentryResult result = (AentryResult) response.getResult();
+                        AppendEntryResult result = (AppendEntryResult) response.getResult();
                         if (result != null && result.isSuccess()) {
                             LOGGER.info("append follower entry success , follower=[{}], entry=[{}]", peer, aentryParam.getEntries());
                             // update 这两个追踪值
@@ -423,7 +394,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                                     peer, result.getTerm(), currentTerm);
                                 currentTerm = result.getTerm();
                                 // 认怂, 变成跟随者
-                                status = NodeStatus.FOLLOWER;
+                                status = NodeRole.FOLLOWER;
                                 return false;
                             } // 没我大, 却失败了,说明 index 不对.或者 term 不对.
                             else {
@@ -432,7 +403,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                                     nextIndex = 1L;
                                 }
                                 nextIndexs.put(peer, nextIndex - 1);
-                                LOGGER.warn("follower {} nextIndex not match, will reduce nextIndex and retry RPC append, nextIndex : [{}]", peer.getAddr(),
+                                LOGGER.warn("follower {} nextIndex not match, will reduce nextIndex and retry RPC append, nextIndex : [{}]", peer.getAddress(),
                                     nextIndex);
                                 // 重来, 直到成功.
                             }
@@ -556,7 +527,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
             if (current - preElectionTime < electionTime) {
                 return;
             }
-            status = NodeStatus.CANDIDATE;
+            status = NodeRole.CANDIDATE;
             LOGGER.error("node {} will become CANDIDATE and start election leader, current term : [{}], LastEntry : [{}]",
                 peerSet.getSelf(), currentTerm, logModule.getLast());
 
@@ -564,7 +535,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
 
             currentTerm = currentTerm + 1;
             // 推荐自己.
-            votedFor = peerSet.getSelf().getAddr();
+            votedFor = peerSet.getSelf().getAddress();
 
             List<Peer> peers = peerSet.getPeersWithOutSelf();
 
@@ -584,9 +555,9 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                             lastTerm = last.getTerm();
                         }
 
-                        RvoteParam param = RvoteParam.newBuilder().
+                        RequestVoteParam param = RequestVoteParam.newBuilder().
                             term(currentTerm).
-                            candidateId(peerSet.getSelf().getAddr()).
+                            candidateId(peerSet.getSelf().getAddress()).
                             lastLogIndex(LongConvert.convert(logModule.getLastIndex())).
                             lastLogTerm(lastTerm).
                             build();
@@ -594,12 +565,12 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                         Request request = Request.newBuilder()
                             .cmd(Request.R_VOTE)
                             .obj(param)
-                            .url(peer.getAddr())
+                            .url(peer.getAddress())
                             .build();
 
                         try {
                             @SuppressWarnings("unchecked")
-                            Response<RvoteResult> response = getRpcClient().send(request);
+                            Response<RequestVoteResult> response = getRpcClient().send(request);
                             return response;
 
                         } catch (RaftRemotingException e) {
@@ -622,7 +593,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
                         try {
 
                             @SuppressWarnings("unchecked")
-                            Response<RvoteResult> response = (Response<RvoteResult>) future.get(3000, MILLISECONDS);
+                            Response<RequestVoteResult> response = (Response<RequestVoteResult>) future.get(3000, MILLISECONDS);
                             if (response == null) {
                                 return -1;
                             }
@@ -656,9 +627,9 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
             }
 
             int success = success2.get();
-            LOGGER.info("node {} maybe become leader , success count = {} , status : {}", peerSet.getSelf(), success, NodeStatus.Enum.value(status));
+            LOGGER.info("node {} maybe become leader , success count = {} , status : {}", peerSet.getSelf(), success, NodeRole.Enum.value(status));
             // 如果投票期间,有其他服务器发送 appendEntry , 就可能变成 follower ,这时,应该停止.
-            if (status == NodeStatus.FOLLOWER) {
+            if (status == NodeRole.FOLLOWER) {
                 return;
             }
             // 加上自身.
@@ -705,7 +676,7 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
             }
             LOGGER.info("=========== NextIndex =============");
             for (Peer peer : peerSet.getPeersWithOutSelf()) {
-                LOGGER.info("Peer {} nextIndex={}", peer.getAddr(), nextIndexs.get(peer));
+                LOGGER.info("Peer {} nextIndex={}", peer.getAddress(), nextIndexs.get(peer));
             }
 
             preHeartBeatTime = System.currentTimeMillis();
@@ -713,31 +684,31 @@ public class DefaultNode<T> implements Node<T>, LifeCycle, ClusterMembershipChan
             // 心跳只关心 term 和 leaderID
             for (Peer peer : peerSet.getPeersWithOutSelf()) {
 
-                AentryParam param = AentryParam.newBuilder()
+                AppendEntryParam param = AppendEntryParam.newBuilder()
                     .entries(null)// 心跳,空日志.
-                    .leaderId(peerSet.getSelf().getAddr())
-                    .serverId(peer.getAddr())
+                    .leaderId(peerSet.getSelf().getAddress())
+                    .serverId(peer.getAddress())
                     .term(currentTerm)
                     .build();
 
-                Request<AentryParam> request = new Request<>(
+                Request<AppendEntryParam> request = new Request<>(
                     Request.A_ENTRIES,
                     param,
-                    peer.getAddr());
+                    peer.getAddress());
 
                 RaftThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             Response response = getRpcClient().send(request);
-                            AentryResult aentryResult = (AentryResult) response.getResult();
+                            AppendEntryResult aentryResult = (AppendEntryResult) response.getResult();
                             long term = aentryResult.getTerm();
 
                             if (term > currentTerm) {
                                 LOGGER.error("self will become follower, he's term : {}, my term : {}", term, currentTerm);
                                 currentTerm = term;
                                 votedFor = "";
-                                status = NodeStatus.FOLLOWER;
+                                status = NodeRole.FOLLOWER;
                             }
                         } catch (Exception e) {
                             LOGGER.error("HeartBeatTask RPC Fail, request URL : {} ", request.getUrl());

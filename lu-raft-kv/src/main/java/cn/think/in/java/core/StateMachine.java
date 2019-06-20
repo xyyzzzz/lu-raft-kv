@@ -1,4 +1,4 @@
-package cn.think.in.java;
+package cn.think.in.java.core;
 
 import cn.think.in.java.entity.LogEntry;
 

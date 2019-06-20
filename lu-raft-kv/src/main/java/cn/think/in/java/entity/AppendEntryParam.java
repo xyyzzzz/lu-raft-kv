@@ -1,23 +1,23 @@
 package cn.think.in.java.entity;
 
-import java.util.Arrays;
-
-import cn.think.in.java.Consensus;
+import cn.think.in.java.core.Consensus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.Arrays;
 
 /**
  *
  * 附加日志 RPC 参数. handlerAppendEntries
  *
  * @author 莫那·鲁道
- * @see Consensus#appendEntries(AentryParam)
+ * @see Consensus#appendEntries(AppendEntryParam)
  */
 @Getter
 @Setter
 @ToString
-public class AentryParam extends BaseParam {
+public class AppendEntryParam extends BaseParam {
 
     /** 领导人的 Id，以便于跟随者重定向请求 */
     String leaderId;
@@ -34,10 +34,10 @@ public class AentryParam extends BaseParam {
     /** 领导人已经提交的日志的索引值  */
     long leaderCommit;
 
-    public AentryParam() {
+    public AppendEntryParam() {
     }
 
-    private AentryParam(Builder builder) {
+    private AppendEntryParam(Builder builder) {
         setTerm(builder.term);
         setServerId(builder.serverId);
         setLeaderId(builder.leaderId);
@@ -113,8 +113,8 @@ public class AentryParam extends BaseParam {
             return this;
         }
 
-        public AentryParam build() {
-            return new AentryParam(this);
+        public AppendEntryParam build() {
+            return new AppendEntryParam(this);
         }
     }
 }

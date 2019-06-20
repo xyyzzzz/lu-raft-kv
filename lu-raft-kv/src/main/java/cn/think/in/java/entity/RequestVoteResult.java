@@ -1,9 +1,9 @@
 package cn.think.in.java.entity;
 
-import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
  *
@@ -12,7 +12,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class RvoteResult implements Serializable {
+public class RequestVoteResult implements Serializable {
 
     /** 当前任期号，以便于候选人去更新自己的任期 */
     long term;
@@ -20,21 +20,21 @@ public class RvoteResult implements Serializable {
     /** 候选人赢得了此张选票时为真 */
     boolean voteGranted;
 
-    public RvoteResult(boolean voteGranted) {
+    public RequestVoteResult(boolean voteGranted) {
         this.voteGranted = voteGranted;
     }
 
-    private RvoteResult(Builder builder) {
+    private RequestVoteResult(Builder builder) {
         setTerm(builder.term);
         setVoteGranted(builder.voteGranted);
     }
 
-    public static RvoteResult fail() {
-        return new RvoteResult(false);
+    public static RequestVoteResult fail() {
+        return new RequestVoteResult(false);
     }
 
-    public static RvoteResult ok() {
-        return new RvoteResult(true);
+    public static RequestVoteResult ok() {
+        return new RequestVoteResult(true);
     }
 
     public static Builder newBuilder() {
@@ -60,8 +60,8 @@ public class RvoteResult implements Serializable {
             return this;
         }
 
-        public RvoteResult build() {
-            return new RvoteResult(this);
+        public RequestVoteResult build() {
+            return new RequestVoteResult(this);
         }
     }
 }

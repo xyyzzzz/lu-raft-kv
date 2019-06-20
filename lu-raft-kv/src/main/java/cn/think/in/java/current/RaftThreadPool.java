@@ -38,11 +38,9 @@ public class RaftThreadPool {
         return new ScheduledThreadPoolExecutor(cup, new NameThreadFactory());
     }
 
-
     public static void scheduleAtFixedRate(Runnable r, long initDelay, long delay) {
         ss.scheduleAtFixedRate(r, initDelay, delay, TimeUnit.MILLISECONDS);
     }
-
 
     public static void scheduleWithFixedDelay(Runnable r, long delay) {
         ss.scheduleWithFixedDelay(r, 0, delay, TimeUnit.MILLISECONDS);

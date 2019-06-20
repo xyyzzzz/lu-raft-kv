@@ -1,9 +1,9 @@
-package cn.think.in.java;
+package cn.think.in.java.core;
 
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.AentryResult;
-import cn.think.in.java.entity.RvoteParam;
-import cn.think.in.java.entity.RvoteResult;
+import cn.think.in.java.entity.AppendEntryParam;
+import cn.think.in.java.entity.AppendEntryResult;
+import cn.think.in.java.entity.RequestVoteParam;
+import cn.think.in.java.entity.RequestVoteResult;
 
 /**
  *
@@ -21,7 +21,7 @@ public interface Consensus {
      *      如果 votedFor 为空或者就是 candidateId，并且候选人的日志至少和自己一样新，那么就投票给他（5.2 节，5.4 节）
      * @return
      */
-    RvoteResult requestVote(RvoteParam param);
+    RequestVoteResult requestVote(RequestVoteParam param);
 
     /**
      * 附加日志(多个日志,为了提高效率) RPC
@@ -35,7 +35,7 @@ public interface Consensus {
      *    如果 leaderCommit > commitIndex，令 commitIndex 等于 leaderCommit 和 新日志条目索引值中较小的一个
      * @return
      */
-    AentryResult appendEntries(AentryParam param);
+    AppendEntryResult appendEntries(AppendEntryParam param);
 
 
 }

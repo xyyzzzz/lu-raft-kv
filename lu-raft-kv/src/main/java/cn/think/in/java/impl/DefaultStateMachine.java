@@ -10,7 +10,7 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.think.in.java.StateMachine;
+import cn.think.in.java.core.StateMachine;
 import cn.think.in.java.entity.Command;
 import cn.think.in.java.entity.LogEntry;
 

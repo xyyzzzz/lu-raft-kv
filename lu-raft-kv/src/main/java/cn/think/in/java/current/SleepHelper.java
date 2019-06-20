@@ -1,9 +1,9 @@
 package cn.think.in.java.current;
 
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 public class SleepHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SleepHelper.class);
-
 
     public static void sleep(int ms) {
         try {

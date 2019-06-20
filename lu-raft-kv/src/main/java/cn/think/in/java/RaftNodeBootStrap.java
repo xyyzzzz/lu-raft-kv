@@ -1,11 +1,10 @@
 package cn.think.in.java;
 
-import java.util.Arrays;
-
-import com.google.common.collect.Lists;
-
 import cn.think.in.java.common.NodeConfig;
+import cn.think.in.java.core.Node;
 import cn.think.in.java.impl.DefaultNode;
+
+import java.util.Arrays;
 
 /**
  * -DserverPort=8775
@@ -29,7 +28,7 @@ public class RaftNodeBootStrap {
         config.setSelfPort(Integer.valueOf(System.getProperty("serverPort")));
 
         // 其他节点地址
-        config.setPeerAddrs(Arrays.asList(peerAddr));
+        config.setPeerAddressList(Arrays.asList(peerAddr));
 
         Node node = DefaultNode.getInstance();
         node.setConfig(config);

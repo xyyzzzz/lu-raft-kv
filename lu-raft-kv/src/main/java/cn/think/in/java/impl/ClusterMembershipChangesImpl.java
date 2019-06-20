@@ -3,7 +3,7 @@ package cn.think.in.java.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.think.in.java.common.NodeStatus;
+import cn.think.in.java.common.NodeRole;
 import cn.think.in.java.common.Peer;
 import cn.think.in.java.entity.LogEntry;
 import cn.think.in.java.membership.changes.ClusterMembershipChanges;
@@ -12,7 +12,6 @@ import cn.think.in.java.rpc.Request;
 import cn.think.in.java.rpc.Response;
 
 /**
- *
  * 集群配置变更接口默认实现.
  *
  * @author 莫那·鲁道
@@ -21,15 +20,17 @@ public class ClusterMembershipChangesImpl implements ClusterMembershipChanges {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterMembershipChangesImpl.class);
 
-
     private final DefaultNode node;
 
     public ClusterMembershipChangesImpl(DefaultNode node) {
         this.node = node;
     }
 
-    /** 必须是同步的,一次只能添加一个节点
-     * @param newPeer*/
+    /**
+     * 必须是同步的,一次只能添加一个节点
+     *
+     * @param newPeer
+     */
     @Override
     public synchronized Result addPeer(Peer newPeer) {
         // 已经存在
@@ -39,7 +40,7 @@ public class ClusterMembershipChangesImpl implements ClusterMembershipChanges {
 
         node.peerSet.getPeersWithOutSelf().add(newPeer);
 
-        if (node.status == NodeStatus.LEADER) {
+        if (node.status == NodeRole.LEADER) {
             node.nextIndexs.put(newPeer, 0L);
             node.matchIndexs.put(newPeer, 0L);
 
@@ -53,10 +54,10 @@ public class ClusterMembershipChangesImpl implements ClusterMembershipChanges {
             for (Peer item : node.peerSet.getPeersWithOutSelf()) {
                 // TODO 同步到其他节点.
                 Request request = Request.newBuilder()
-                    .cmd(Request.CHANGE_CONFIG_ADD)
-                    .url(newPeer.getAddr())
-                    .obj(newPeer)
-                    .build();
+                        .cmd(Request.CHANGE_CONFIG_ADD)
+                        .url(newPeer.getAddress())
+                        .obj(newPeer)
+                        .build();
 
                 Response response = node.rpcClient.send(request);
                 Result result = (Result) response.getResult();
@@ -73,8 +74,11 @@ public class ClusterMembershipChangesImpl implements ClusterMembershipChanges {
     }
 
 
-    /** 必须是同步的,一次只能删除一个节点
-     * @param oldPeer*/
+    /**
+     * 必须是同步的,一次只能删除一个节点
+     *
+     * @param oldPeer
+     */
     @Override
     public synchronized Result removePeer(Peer oldPeer) {
         node.peerSet.getPeersWithOutSelf().remove(oldPeer);

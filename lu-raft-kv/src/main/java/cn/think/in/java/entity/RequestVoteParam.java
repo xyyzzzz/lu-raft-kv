@@ -1,6 +1,6 @@
 package cn.think.in.java.entity;
 
-import cn.think.in.java.Consensus;
+import cn.think.in.java.core.Consensus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,11 +8,11 @@ import lombok.Setter;
  * 请求投票 RPC 参数.
  *
  * @author 莫那·鲁道
- * @see Consensus#requestVote(RvoteParam)
+ * @see Consensus#requestVote(RequestVoteParam)
  */
 @Getter
 @Setter
-public class RvoteParam extends BaseParam {
+public class RequestVoteParam extends BaseParam {
 
     /** 请求选票的候选人的 Id(ip:selfPort) */
     String candidateId;
@@ -23,7 +23,7 @@ public class RvoteParam extends BaseParam {
     /** 候选人最后日志条目的任期号  */
     long lastLogTerm;
 
-    private RvoteParam(Builder builder) {
+    private RequestVoteParam(Builder builder) {
         setTerm(builder.term);
         setServerId(builder.serverId);
         setCandidateId(builder.candidateId);
@@ -33,7 +33,7 @@ public class RvoteParam extends BaseParam {
 
     @Override
     public String toString() {
-        return "RvoteParam{" +
+        return "RequestVoteParam{" +
             "candidateId='" + candidateId + '\'' +
             ", lastLogIndex=" + lastLogIndex +
             ", lastLogTerm=" + lastLogTerm +
@@ -83,8 +83,8 @@ public class RvoteParam extends BaseParam {
             return this;
         }
 
-        public RvoteParam build() {
-            return new RvoteParam(this);
+        public RequestVoteParam build() {
+            return new RequestVoteParam(this);
         }
     }
 }

@@ -3,8 +3,8 @@ package cn.think.in.java.rpc;
 import com.alipay.remoting.BizContext;
 
 import cn.think.in.java.common.Peer;
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.RvoteParam;
+import cn.think.in.java.entity.AppendEntryParam;
+import cn.think.in.java.entity.RequestVoteParam;
 import cn.think.in.java.impl.DefaultNode;
 import cn.think.in.java.membership.changes.ClusterMembershipChanges;
 import raft.client.ClientKVReq;
@@ -64,9 +64,9 @@ public class DefaultRpcServer implements RpcServer {
     @Override
     public Response handlerRequest(Request request) {
         if (request.getCmd() == Request.R_VOTE) {
-            return new Response(node.handlerRequestVote((RvoteParam) request.getObj()));
+            return new Response(node.handlerRequestVote((RequestVoteParam) request.getObj()));
         } else if (request.getCmd() == Request.A_ENTRIES) {
-            return new Response(node.handlerAppendEntries((AentryParam) request.getObj()));
+            return new Response(node.handlerAppendEntries((AppendEntryParam) request.getObj()));
         } else if (request.getCmd() == Request.CLIENT_REQ) {
             return new Response(node.handlerClientRequest((ClientKVReq) request.getObj()));
         } else if (request.getCmd() == Request.CHANGE_CONFIG_REMOVE) {

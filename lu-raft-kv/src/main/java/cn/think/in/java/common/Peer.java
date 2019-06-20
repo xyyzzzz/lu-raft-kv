@@ -1,9 +1,9 @@
 package cn.think.in.java.common;
 
-import java.util.Objects;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Objects;
 
 /**
  * 当前节点的 同伴.
@@ -15,11 +15,11 @@ import lombok.Setter;
 public class Peer {
 
     /** ip:selfPort */
-    private final String addr;
+    private final String address;
 
 
-    public Peer(String addr) {
-        this.addr = addr;
+    public Peer(String address) {
+        this.address = address;
     }
 
     @Override
@@ -31,19 +31,19 @@ public class Peer {
             return false;
         }
         Peer peer = (Peer) o;
-        return Objects.equals(addr, peer.addr);
+        return Objects.equals(address, peer.address);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(addr);
+        return Objects.hash(address);
     }
 
     @Override
     public String toString() {
         return "Peer{" +
-            "addr='" + addr + '\'' +
+            "address='" + address + '\'' +
             '}';
     }
 }

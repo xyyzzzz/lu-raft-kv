@@ -1,10 +1,10 @@
 package cn.think.in.java.entity;
 
-import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.io.Serializable;
 
 /**
  *
@@ -15,7 +15,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class AentryResult implements Serializable {
+public class AppendEntryResult implements Serializable {
 
     /** 当前的任期号，用于领导人去更新自己 */
     long term;
@@ -23,30 +23,30 @@ public class AentryResult implements Serializable {
     /** 跟随者包含了匹配上 prevLogIndex 和 prevLogTerm 的日志时为真  */
     boolean success;
 
-    public AentryResult(long term) {
+    public AppendEntryResult(long term) {
         this.term = term;
     }
 
-    public AentryResult(boolean success) {
+    public AppendEntryResult(boolean success) {
         this.success = success;
     }
 
-    public AentryResult(long term, boolean success) {
+    public AppendEntryResult(long term, boolean success) {
         this.term = term;
         this.success = success;
     }
 
-    private AentryResult(Builder builder) {
+    private AppendEntryResult(Builder builder) {
         setTerm(builder.term);
         setSuccess(builder.success);
     }
 
-    public static AentryResult fail() {
-        return new AentryResult(false);
+    public static AppendEntryResult fail() {
+        return new AppendEntryResult(false);
     }
 
-    public static AentryResult ok() {
-        return new AentryResult(true);
+    public static AppendEntryResult ok() {
+        return new AppendEntryResult(true);
     }
 
     public static Builder newBuilder() {
@@ -72,8 +72,8 @@ public class AentryResult implements Serializable {
             return this;
         }
 
-        public AentryResult build() {
-            return new AentryResult(this);
+        public AppendEntryResult build() {
+            return new AppendEntryResult(this);
         }
     }
 }

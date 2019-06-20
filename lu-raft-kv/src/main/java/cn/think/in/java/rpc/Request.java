@@ -2,8 +2,8 @@ package cn.think.in.java.rpc;
 
 import java.io.Serializable;
 
-import cn.think.in.java.entity.AentryParam;
-import cn.think.in.java.entity.RvoteParam;
+import cn.think.in.java.entity.AppendEntryParam;
+import cn.think.in.java.entity.RequestVoteParam;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -31,8 +31,8 @@ public class Request<T> implements Serializable {
     private int cmd = -1;
 
     /** param
-     * @see AentryParam
-     * @see RvoteParam
+     * @see AppendEntryParam
+     * @see RequestVoteParam
      * @see ClientKVReq
      * */
     private T obj;

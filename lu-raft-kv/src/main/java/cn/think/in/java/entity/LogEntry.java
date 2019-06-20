@@ -3,7 +3,7 @@ package cn.think.in.java.entity;
 import java.io.Serializable;
 import java.util.Objects;
 
-import cn.think.in.java.LogModule;
+import cn.think.in.java.core.LogModule;
 import lombok.Getter;
 import lombok.Setter;
 

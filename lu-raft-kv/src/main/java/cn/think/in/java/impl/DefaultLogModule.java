@@ -11,7 +11,7 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.think.in.java.LogModule;
+import cn.think.in.java.core.LogModule;
 import cn.think.in.java.entity.LogEntry;
 import lombok.Getter;
 import lombok.Setter;

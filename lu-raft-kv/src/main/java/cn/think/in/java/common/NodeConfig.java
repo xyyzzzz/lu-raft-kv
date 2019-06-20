@@ -1,10 +1,10 @@
 package cn.think.in.java.common;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
 
 /**
  *
@@ -21,6 +21,6 @@ public class NodeConfig {
     public int selfPort;
 
     /** 所有节点地址. */
-    public List<String> peerAddrs;
+    public List<String> peerAddressList;
 
 }
